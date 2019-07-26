@@ -66,7 +66,7 @@ def MLP_bert_training(X, y):
         
         return model_mlp
     
-    model_mlp = load_model('model_mlp.h5')
+    model_mlp = load_model('models/model_mlp.h5')
         
     return model_mlp
 

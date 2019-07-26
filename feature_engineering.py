@@ -193,8 +193,8 @@ def hand_features(headlines, bodies):
 #        features = append_chargrams(features, clean_headline, clean_body, 8)
 #        features = append_chargrams(features, clean_headline, clean_body, 4)
 #        features = append_chargrams(features, clean_headline, clean_body, 16)
-        features = append_ngrams(features, clean_headline, clean_body, 2)
-        features = append_ngrams(features, clean_headline, clean_body, 3)
+        features = append_ngrams(features, clean_headline, clean_body, 2) #22
+        features = append_ngrams(features, clean_headline, clean_body, 3) #24
         features = append_ngrams(features, clean_headline, clean_body, 4)
         features = append_ngrams(features, clean_headline, clean_body, 5)
         features = append_ngrams(features, clean_headline, clean_body, 6)

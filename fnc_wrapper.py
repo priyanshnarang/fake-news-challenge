@@ -48,6 +48,7 @@ if __name__ == "__main__":
     
     # Train XG-Boost classifier
     xgb_clf = XGBoostFNC(np.c_[X_train[:,0:25], X_train[:,30:]], y_train, np.c_[X_competition[:,0:25], X_competition[:,30:]])
+    #xgb_clf = XGBoostFNC(X_train, y_train, X_competition)
     y_pred_xgb = xgb_clf.predict()
     
     # Train MLP Classifier
@@ -63,10 +64,8 @@ if __name__ == "__main__":
     
     print("Scores on the test set")
     report_score(actual,predicted)
-
-
     
-    
+
 
     
     

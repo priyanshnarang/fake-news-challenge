@@ -6,6 +6,7 @@ Created on Fri Jul 26 02:04:02 2019
 @author: Priyansh Narang
 """
 import os
+import time
 from xgboost import XGBClassifier
 from sklearn.feature_selection import SelectFromModel
 from numpy import inf
@@ -19,7 +20,12 @@ class XGBoostFNC:
         self.x_test = X_test
         self.y_pred = None
         self.model = None
-        self.model_exists = True
+        if not os.path.isfile('models/model_xgboost.pickle'):
+            self.model_exists = False
+        else:
+            self.model_exists = True
+        
+        print("XG Boost model: ", self.model_exists)
     
     def persist_model(self):
         try:
@@ -47,9 +53,14 @@ class XGBoostFNC:
             wmd_train[wmd_train == inf] = np.nanmax(wmd_train[wmd_train != np.inf])
             X_train_wmd = np.c_[self.x_train, wmd_train.reshape(-1,1)]
             
+            start_time = time.time()
+            print("Training XG-Boost Model on X: {0} and Y: {1}".format(X_train_wmd.shape, len(self.y_train)))
+            
             # Train a XG-Boost Classifier
             model_xgboost = XGBClassifier(n_estimators=1000, learning_rate=0.1, n_jobs = -1)     
             model_xgboost.fit(X_train_wmd, self.y_train)
+            
+            print("Model finished training in {0} seconds".format(time.time()-start_time))
             
             # Change class properties to reflect changes
             self.model_exists = True
