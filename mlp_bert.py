@@ -50,7 +50,7 @@ def MLP_bert_training(X, y):
     y_2_categorical = to_categorical(y_train_2)
 
     if not os.path.isfile('models/model_mlp.h5'):   
-        
+        print("Training MLP-BERT Model on X: {0} and Y: {1}".format(X.shape, len(y)))
         callback = [EarlyStopping(monitor='val_loss', verbose=1, patience = 3),ModelCheckpoint('model_mlp.h5', monitor='val_loss', verbose=1, save_best_only=True)]
 
   
@@ -67,12 +67,11 @@ def MLP_bert_training(X, y):
         return model_mlp
     
     model_mlp = load_model('models/model_mlp.h5')
-        
     return model_mlp
 
 
 def MLP_bert_predict(X, clf_mlp):
-    
+    print("MLP-BERT Model: True")
     y_pred_2, y_pred_4 = clf_mlp.predict(X)
     return y_pred_4
     

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import warnings
 from utils.dataset import DataSet
 from utils.score import report_score, LABELS, score_submission
 from utils.system import parse_params, check_version
@@ -8,6 +9,8 @@ from feature_engineering import word_overlap_features
 from feature_engineering import sentiment_features, ner_features, bert_features, cosine_features
 from xgboost_bert import XGBoostFNC
 from mlp_bert import MLP_bert_training, MLP_bert_predict
+
+warnings.simplefilter("ignore")
 
 def generate_features(stances,dataset,name):
     h, b, y = [],[],[]
