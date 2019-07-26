@@ -11,32 +11,67 @@ from numpy import inf
 import pickle
 import numpy as np
 
-
-
-def XGBoost_training(X, y):
+class XGBoostFNC:
+    def __init__(self, X_train, y_train, X_test):
+        self.x_train = X_train
+        self.y_train = y_train
+        self.x_test = X_test
+        self.y_pred = None
+        self.model = None
+        self.model_exists = False
     
-    if not os.path.isfile('models/model_xgboost.pickle'):   
-        train_wmd = np.load('features/wmd_train.npy')
-        wmd_train[wmd_train == inf] = np.nanmax(wmd_train[wmd_train != np.inf])
-        X_train_wmd = np.c_[X, wmd_train.reshape(-1,1)]
-        
-        model_xgboost = XGBClassifier(n_estimators=1000, learning_rate=0.1, n_jobs = -1)     
-        model_xgboost.fit(X_train_wmd, y)
-        
-        with open('models/model_xgboost.pickle ', 'wb') as handle:
-            pickle.dump(model_xgboost, handle)
+    def persist_model(self):
+        try:
+            with open('models/model_xgboost.pickle ', 'wb') as handle:
+                pickle.dump(self.model, handle)
+                
+        except Exception as e:
+            print(e)
     
-    with open('models/model_xgboost.pickle', 'rb') as handle:
-        model_xgboost = pickle.load(handle)
-        
-    return model_xgboost
-
-
-def XGBoost_predict(X, clf_xgb):
+    def load_model(self):
+        if self.model_exists == False:
+            self.train_model()
+            
+        elif self.model_exists:
+            with open('models/model_xgboost.pickle', 'rb') as handle:
+                model_xgboost = pickle.load(handle)
+                self.model = model_xgboost
+            
+        return True
     
-    wmd_test = np.load('features/wmd_test.npy')
-    wmd_test[wmd_test == inf] = np.nanmax(wmd_test[wmd_test != np.inf])
-    X_test_wmd = np.c_[X, wmd_test.reshape(-1,1)]
-    y_pred = clf_xgb.predict(X_test_wmd)
-    return y_pred
+    def train_model(self):
+        try:
+            # Load WMD Features for Train Set
+            wmd_train = np.load('features/wmd_train.npy')
+            wmd_train[wmd_train == inf] = np.nanmax(wmd_train[wmd_train != np.inf])
+            X_train_wmd = np.c_[self.x_train, wmd_train.reshape(-1,1)]
+            
+            # Train a XG-Boost Classifier
+            model_xgboost = XGBClassifier(n_estimators=1000, learning_rate=0.1, n_jobs = -1)     
+            model_xgboost.fit(X_train_wmd, self.y_train)
+            
+            # Change class properties to reflect changes
+            self.model_exists = True
+            self.model = model_xgboost
+            self.persist_model()
+        
+        except Exception as e:
+            print(e)
+    
+    def predict(self):
+        try:
+            if self.load_model():
+            
+                # Load WMD features for Test Set
+                wmd_test = np.load('features/wmd_test.npy')
+                wmd_test[wmd_test == inf] = np.nanmax(wmd_test[wmd_test != np.inf])
+                X_test_wmd = np.c_[self.x_test, wmd_test.reshape(-1,1)]
+                
+                # Predict y values
+                y_pred = self.model.predict(X_test_wmd)
+                self.y_pred = y_pred
+                return y_pred
+        
+        except Exception as e:
+            print(e)
     

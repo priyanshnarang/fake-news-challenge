@@ -16,6 +16,7 @@ from keras import optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
+
 def build_model():
     input_layer = Input(shape=(804,), dtype='float32', name='input_layer')
     
@@ -52,7 +53,7 @@ def MLP_bert_training(X, y_2_categorical, y_4_categorical):
         model_mlp = build_model()    
         custom_weights_2 ={0: 1, 1: 5.72175}
         custom_weights_4 ={0:12.93617, 1:43.50595, 2:11.1020, 3:1}
-
+        
         model_mlp.fit(X,
           {'output_layer_2': y_2_categorical, 'output_layer_4': y_4_categorical},verbose=2,
           epochs=100, batch_size=128, validation_split = .2, callbacks = callback, class_weight=[custom_weights_2, custom_weights_4])
