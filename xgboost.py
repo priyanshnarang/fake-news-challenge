@@ -32,7 +32,7 @@ def XGBoost_training(X, y):
     return model_xgboost
 
 
-def XGBoost(X, clf_xgb):
+def XGBoost_predict(X, clf_xgb):
     
     wmd_test = np.load('features/wmd_test.npy')
     wmd_test[wmd_test == inf] = np.nanmax(wmd_test[wmd_test != np.inf])
