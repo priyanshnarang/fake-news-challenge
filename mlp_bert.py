@@ -14,7 +14,7 @@ from keras.layers import Dense, Input, Dropout
 from keras.models import load_model, Model
 from keras import optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-
+from keras.utils import to_categorical
 
 
 def build_model():
@@ -43,9 +43,13 @@ def build_model():
 
 
 
-def MLP_bert_training(X, y_2_categorical, y_4_categorical):
+def MLP_bert_training(X, y):
+    y_4_categorical = to_categorical(y,4)
     
-    if not os.path.isfile('models/model_mlp.pickle'):   
+    y_train_2 = [0 if ele  == '3' else 1 for ele in y]     
+    y_2_categorical = to_categorical(y_train_2)
+
+    if not os.path.isfile('models/model_mlp.h5'):   
         
         callback = [EarlyStopping(monitor='val_loss', verbose=1, patience = 3),ModelCheckpoint('model_mlp.h5', monitor='val_loss', verbose=1, save_best_only=True)]
 

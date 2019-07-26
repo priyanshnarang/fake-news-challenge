@@ -2,9 +2,12 @@ import os
 import re
 import nltk
 import numpy as np
+import pandas as pd
 from sklearn import feature_extraction
 from tqdm import tqdm
-
+import spacy
+from textblob import TextBlob
+from scipy.spatial.distance import cosine
 
 _wnl = nltk.WordNetLemmatizer()
 
@@ -34,8 +37,6 @@ def gen_or_load_feats(feat_fn, headlines, bodies, feature_file):
         np.save(feature_file, feats)
 
     return np.load(feature_file)
-
-
 
 
 def word_overlap_features(headlines, bodies):
@@ -188,10 +189,10 @@ def hand_features(headlines, bodies):
         clean_body = clean(body)
         clean_headline = clean(headline)
         features = []
-        features = append_chargrams(features, clean_headline, clean_body, 2)
-        features = append_chargrams(features, clean_headline, clean_body, 8)
-        features = append_chargrams(features, clean_headline, clean_body, 4)
-        features = append_chargrams(features, clean_headline, clean_body, 16)
+#        features = append_chargrams(features, clean_headline, clean_body, 2)
+#        features = append_chargrams(features, clean_headline, clean_body, 8)
+#        features = append_chargrams(features, clean_headline, clean_body, 4)
+#        features = append_chargrams(features, clean_headline, clean_body, 16)
         features = append_ngrams(features, clean_headline, clean_body, 2)
         features = append_ngrams(features, clean_headline, clean_body, 3)
         features = append_ngrams(features, clean_headline, clean_body, 4)
@@ -207,3 +208,81 @@ def hand_features(headlines, bodies):
 
 
     return X
+
+
+def ner_features(headlines, bodies):
+    nlp_md = spacy.load("en_core_web_md") 
+    
+    headline_ner = []
+    body_ner = []
+    X = []
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        try:
+            clean_headline = clean(headline)
+            clean_body = clean(body)
+            clean_body_tokens = clean_body.split()
+            
+            if len(clean_body_tokens) > 50:
+                clean_body_tokens = clean_body_tokens[0:50]
+            
+            clean_body = ' '.join(clean_body_tokens)
+            
+            temp_head = []
+            temp_body = []
+            
+            doc_head = nlp_md(clean_headline)
+            for ent in doc_head.ents:
+                temp_head.append(ent.text)
+            headline_ner.append(temp_head)
+            
+            doc_body = nlp_md(clean_body)
+            for ent in doc_body.ents:
+                temp_body.append(ent.text)
+            body_ner.append(temp_body)
+            
+            features = [
+                len(set(temp_head).intersection(temp_body)) / float(len(set(temp_head).union(temp_body)))]
+            X.append(features)
+        except ZeroDivisionError:
+            features = [0.0]
+            X.append(features)
+        
+    return X
+
+def sentiment_features(headlines, bodies):
+    X = []
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        clean_headline = clean(headline)
+        clean_body = clean(body)
+        
+        head_sent = TextBlob(clean_headline)
+        body_sent = TextBlob(clean_body)
+        
+        features = [1 if head_sent.sentiment.polarity >=0 else 0, 1 if body_sent.sentiment.polarity >=0 else 0]
+        
+        X.append(features)
+        
+    return X
+
+def bert_features(path):
+    if os.path.isfile(path):
+        df = pd.read_csv(path)
+        df.drop('Unnamed: 0', inplace=True, axis=1)
+        return df.values
+    
+def cosine_features(name, path):
+    if os.path.isfile(path):
+        return np.load(path)
+    
+    headline_path, body_path = "features/headline_bert_"+name+".csv", "features/body_bert_"+name+".csv"
+    if os.path.isfile(headline_path) and os.path.isfile(body_path) and not os.path.isfile(path):
+        headline_values = bert_features(headline_path)
+        body_values = bert_features(body_path)
+        cosine_ndarray = []
+        
+        for i in range(headline_values.shape[0]):
+            cosine_ndarray.append(1 - cosine(headline_values[i], body_values[i]))
+        
+        np.save(path, cosine_ndarray)
+        return cosine_ndarray
+
